@@ -26,7 +26,10 @@ Route::prefix('storages')->group(function () {
     Route::get('/{id}/edit', [StorageController::class, 'edit'])->name('storages.edit');
     Route::put('/{id}', [StorageController::class, 'update'])->name('storages.update');
     Route::delete('/{id}', [StorageController::class, 'delete'])->name('storages.delete');
-    Route::post('/{id}/transfer', [StorageController::class, 'transferToAnotherStorage'])->name('storages.transfer');
+    Route::get('/{id}/transfer', [StorageController::class, 'transfer'])->name('storages.transfer');
+
+// Handle the transfer logic
+    Route::post('/{id}/transfer', [StorageController::class, 'transferToAnotherStorage'])->name('storages.transferToAnotherStorage');
 });
 Route::prefix('storage-buildings')->group(function () {
     Route::get('/', [StorageBuildingController::class, 'index'])->name('storage-buildings.index');

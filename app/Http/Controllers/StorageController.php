@@ -32,6 +32,20 @@ class StorageController extends Controller
             'storage_building_id' => 'required|exists:storage_buildings,id',
         ]);
 
+        // Get the storage building based on the selected storage building ID
+        $storageBuilding = StorageBuilding::find($request->storage_building_id);
+
+        // Calculate the total quantity already in the selected storage building
+        $totalQuantityInStorage = Storage::where('storage_building_id', $storageBuilding->id)->sum('quantity');
+        $newTotalQuantity = $totalQuantityInStorage + $request->quantity;
+
+        // Check if the quantity to be added exceeds the storage building's capacity
+        if ($newTotalQuantity > $storageBuilding->capacity) {
+            return redirect()->route('storages.create')
+                             ->with('error', 'The quantity exceeds the capacity of the storage building.');
+        }
+
+        // Create a new Storage item
         $storage = new Storage();
         $storage->name = $request->name;
         $storage->quantity = $request->quantity;
@@ -39,7 +53,7 @@ class StorageController extends Controller
         $storage->save();
 
         // Redirect back to the storage index with a success message
-        return redirect()->route('storages.index')->with('success', 'Storage item created successfully');
+        return redirect()->route('storages.index')->with('success', 'Storage item created successfully.');
     }
 
     // 4. Show a specific storage item
@@ -63,7 +77,8 @@ class StorageController extends Controller
             return redirect()->route('storages.index')->with('error', 'Storage item not found');
         }
 
-        return view('storages.edit', compact('storage')); // Pass storage data to the edit form view
+        $storageBuildings = StorageBuilding::all(); // Fetch all storage buildings for selection
+        return view('storages.edit', compact('storage', 'storageBuildings')); // Pass data to the edit form view
     }
 
     // 6. Update a storage item
@@ -74,17 +89,29 @@ class StorageController extends Controller
             'quantity' => 'required|integer',
         ]);
 
+        // Find the storage item and its associated storage building
         $storage = Storage::find($id);
+        $storageBuilding = StorageBuilding::find($storage->storage_building_id);
 
-        if (!$storage) {
-            return redirect()->route('storages.index')->with('error', 'Storage item not found');
+        // Calculate the total quantity already in the selected storage building excluding the current item
+        $totalQuantityInStorage = Storage::where('storage_building_id', $storageBuilding->id)
+                                         ->where('id', '!=', $id)  // Exclude the current item being updated
+                                         ->sum('quantity');
+        $newTotalQuantity = $totalQuantityInStorage + $request->quantity;
+
+        // Check if the quantity to be updated exceeds the storage building's capacity
+        if ($newTotalQuantity > $storageBuilding->capacity) {
+            return redirect()->route('storages.edit', $id)
+                             ->with('error', 'The quantity exceeds the capacity of the storage building.');
         }
 
+        // Update the storage item
         $storage->name = $request->name;
         $storage->quantity = $request->quantity;
         $storage->save();
 
-        return redirect()->route('storages.index')->with('success', 'Storage item updated successfully');
+        // Redirect back to the storage index with a success message
+        return redirect()->route('storages.index')->with('success', 'Storage item updated successfully.');
     }
 
     // 7. Delete a storage item
@@ -99,6 +126,17 @@ class StorageController extends Controller
         $storage->delete();
 
         return redirect()->route('storages.index')->with('success', 'Storage item deleted successfully');
+    }
+    public function transfer($id)
+    {
+        $storage = Storage::find($id);
+        if (!$storage) {
+            return redirect()->route('storages.index')->with('error', 'Storage item not found');
+        }
+
+        // Fetch all available storage buildings for selection
+        $storageBuildings = StorageBuilding::all();
+        return view('storages.transfer', compact('storage', 'storageBuildings'));
     }
 
     // 8. Transfer items to another storage building

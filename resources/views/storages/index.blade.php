@@ -1,4 +1,3 @@
-<!-- resources/views/storages/index.blade.php -->
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
@@ -33,7 +32,8 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-500">Delete</button>
-                                        </form>
+                                        </form> | 
+                                        <a href="{{ route('storages.transfer', $storage->id) }}" class="text-green-500">Transfer</a> <!-- Transfer Link -->
                                     </td>
                                 </tr>
                             @endforeach

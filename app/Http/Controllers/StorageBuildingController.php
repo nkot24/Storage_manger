@@ -58,16 +58,17 @@ class StorageBuildingController extends Controller
     {
         // Find the storage building by its ID
         $storageBuilding = StorageBuilding::find($id);
-
+    
         // If the storage building is not found, redirect to the index page with an error message
         if (!$storageBuilding) {
             return redirect()->route('storage-buildings.index')
                              ->with('error', 'Storage building not found');
         }
-
+    
         // Pass the storage building to the view
-        return view('storage-buildings.edit', compact('storageBuildings'));
+        return view('storage-buildings.edit', compact('storageBuilding')); // Pass the correct variable
     }
+    
 
     // Update a storage building
     public function update(Request $request, $id)
