@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\StorageBuildingController;
@@ -8,21 +9,34 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/storages', [StorageController::class, 'index'])->name('storages.index'); // Index route first
-Route::get('/storages/create', [StorageController::class, 'create'])->name('storages.create');
-Route::post('/storages', [StorageController::class, 'store'])->name('storages.store');
-Route::get('/storages/{id}', [StorageController::class, 'show'])->name('storages.show');
-Route::get('/storages/{id}/edit', [StorageController::class, 'edit'])->name('storages.edit');
-Route::put('/storages/{id}', [StorageController::class, 'update'])->name('storages.update');
-Route::delete('/storages/{id}', [StorageController::class, 'delete'])->name('storages.delete');
-Route::post('/storages/{id}/transfer', [StorageController::class, 'transferToAnotherStorage'])->name('storages.transferToAnotherStorage');
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+Route::prefix('storages')->group(function () {
+    Route::get('/', [StorageController::class, 'index'])->name('storages.index');
+    Route::get('/create', [StorageController::class, 'create'])->name('storages.create');
+    Route::post('/store', [StorageController::class, 'store'])->name('storages.store');
+    Route::get('/{id}', [StorageController::class, 'show'])->name('storages.show');
+    Route::get('/{id}/edit', [StorageController::class, 'edit'])->name('storages.edit');
+    Route::put('/{id}', [StorageController::class, 'update'])->name('storages.update');
+    Route::delete('/{id}', [StorageController::class, 'delete'])->name('storages.delete');
+    Route::post('/{id}/transfer', [StorageController::class, 'transferToAnotherStorage'])->name('storages.transfer');
+});
+Route::prefix('storage-buildings')->group(function () {
+    Route::get('/', [StorageBuildingController::class, 'index'])->name('storage-buildings.index');
+    Route::get('/create', [StorageBuildingController::class, 'create'])->name('storage-buildings.create');
+    Route::post('/store', [StorageBuildingController::class, 'store'])->name('storage-buildings.store');
+    Route::get('/{id}', [StorageBuildingController::class, 'show'])->name('storage-buildings.show');
+    Route::get('/{id}/edit', [StorageBuildingController::class, 'edit'])->name('storage-buildings.edit');
+    Route::put('/{id}', [StorageBuildingController::class, 'update'])->name('storage-buildings.update');
+    Route::delete('/{id}', [StorageBuildingController::class, 'destroy'])->name('storage-buildings.destroy');
+    Route::post('/{id}/send', [StorageBuildingController::class, 'sendToAnotherBuilding'])->name('storage-buildings.send');
+});
 
-Route::get('/storage-buildings', [StorageBuildingController::class, 'index'])->name('storage-buildings.index'); // Index route first
-Route::get('/storage-buildings/create', [StorageBuildingController::class, 'create'])->name('storage-buildings.create');
-Route::post('/storage-buildings', [StorageBuildingController::class, 'store'])->name('storage-buildings.store');
-Route::get('/storage-buildings/{id}', [StorageBuildingController::class, 'show'])->name('storage-buildings.show');
-Route::get('/storage-buildings/{id}/edit', [StorageBuildingController::class, 'edit'])->name('storage-buildings.edit');
-Route::put('/storage-buildings/{id}', [StorageBuildingController::class, 'update'])->name('storage-buildings.update');
-Route::delete('/storage-buildings/{id}', [StorageBuildingController::class, 'destroy'])->name('storage-buildings.destroy');
-Route::post('/storage-buildings/{id}/send', [StorageBuildingController::class, 'sendToAnotherBuilding'])->name('storage-buildings.sendToAnotherBuilding');
+require __DIR__.'/auth.php';
